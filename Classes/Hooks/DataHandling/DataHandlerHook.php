@@ -2,31 +2,30 @@
 namespace Tx\Realurl\Hooks\DataHandling;
 
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 2010 Dmitry Dulepov (dmitry@typo3.org)
-*  All rights reserved
-*
-*  This script is part of the TYPO3 project. The TYPO3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*  A copy is found in the textfile GPL.txt and important notices to the license
-*  from the author is found in LICENSE.txt distributed with these scripts.
-*
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
-
+ *  Copyright notice
+ *
+ *  (c) 2010 Dmitry Dulepov (dmitry@typo3.org)
+ *  All rights reserved
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
 use Tx\Realurl\Configuration\ConfigurationGenerator;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -37,7 +36,7 @@ use TYPO3\CMS\Core\Utility\MathUtility;
 /**
  * TCEmain hook to update various caches when data is modified in TYPO3 Backend
  *
- * @author	Dmitry Dulepov <dmitry@typo3.org>
+ * @author    Dmitry Dulepov <dmitry@typo3.org>
  */
 class DataHandlerHook implements SingletonInterface {
 
@@ -71,12 +70,11 @@ class DataHandlerHook implements SingletonInterface {
 	protected function clearCaches($command, $tableName, $recordId) {
 		if ($this->isTableForCache($tableName)) {
 			if ($command == 'delete' || $command == 'move') {
-				list($pageId, ) = $this->getPageData($tableName, $recordId);
+				list($pageId,) = $this->getPageData($tableName, $recordId);
 				$this->fetchRealURLConfiguration($pageId);
 				if ($command == 'delete') {
 					$this->clearPathCache($pageId);
-				}
-				else {
+				} else {
 					$this->expirePathCacheForAllLanguages($pageId);
 				}
 				$this->clearOtherCaches($pageId);
@@ -187,8 +185,7 @@ class DataHandlerHook implements SingletonInterface {
 			if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl']['_DEFAULT'])) {
 				$this->config = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl']['_DEFAULT'];
 			}
-		}
-		else {
+		} else {
 			GeneralUtility::sysLog('RealURL is not configured! Please, configure it or uninstall.', 'RealURL', 3);
 		}
 	}
@@ -200,7 +197,7 @@ class DataHandlerHook implements SingletonInterface {
 	 * @return int[] Child pages
 	 */
 	protected function getChildPages($pageId) {
-		$children  = array();
+		$children = array();
 
 		/** @var $tree \TYPO3\CMS\Backend\Tree\View\PageTreeView */
 		$tree = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Tree\\View\\PageTreeView');
@@ -235,8 +232,7 @@ class DataHandlerHook implements SingletonInterface {
 	protected static function getPageData($tableName, $id) {
 		if ($tableName == 'pages_language_overlay') {
 			$result = self::getInfoFromOverlayPid($id);
-		}
-		else {
+		} else {
 			$result = array($id, 0);
 		}
 		return $result;
@@ -246,29 +242,27 @@ class DataHandlerHook implements SingletonInterface {
 	 * Retrieves field list to check for modification
 	 *
 	 * @param string $tableName
-	 * @return	array
+	 * @return    array
 	 */
 	protected function getFieldList($tableName) {
 		if ($tableName == 'pages_language_overlay') {
 			$fieldList = TX_REALURL_SEGTITLEFIELDLIST_PLO;
-		}
-		else {
+		} else {
 			if (isset($this->config['pagePath']['segTitleFieldList'])) {
 				$fieldList = $this->config['pagePath']['segTitleFieldList'];
-			}
-			else {
+			} else {
 				$fieldList = TX_REALURL_SEGTITLEFIELDLIST_DEFAULT;
 			}
 		}
 		$fieldList .= ',hidden';
-		return array_unique(GeneralUtility::trimExplode(',', $fieldList, true));
+		return array_unique(GeneralUtility::trimExplode(',', $fieldList, TRUE));
 	}
 
 	/**
 	 * Retrieves real page id given its overlay id
 	 *
-	 * @param	int		$pid	Page id
-	 * @return	array		Array with two members: real page uid and sys_language_uid
+	 * @param    int $pid Page id
+	 * @return    array        Array with two members: real page uid and sys_language_uid
 	 */
 	protected static function getInfoFromOverlayPid($pid) {
 		/** @noinspection PhpUndefinedMethodInspection */
@@ -376,12 +370,11 @@ class DataHandlerHook implements SingletonInterface {
 	 * @return boolean
 	 */
 	protected function shouldFixCaches($tableName, array $databaseData) {
-		$result = false;
+		$result = FALSE;
 		if (self::isTableForCache($tableName)) {
 			$interestingFields = $this->getFieldList($tableName);
 			$result = count(array_intersect($interestingFields, array_keys($databaseData))) > 0;
 		}
 		return $result;
 	}
-
 }

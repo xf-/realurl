@@ -18,7 +18,7 @@ $GLOBALS['TCA']['pages']['columns'] += array(
 		'label' => 'LLL:EXT:realurl/Resources/Private/Language/locallang_db.xml:pages.tx_realurl_pathsegment',
 		'displayCond' => 'FIELD:tx_realurl_exclude:!=:1',
 		'exclude' => 1,
-		'config' => array (
+		'config' => array(
 			'type' => 'input',
 			'max' => 255,
 			'eval' => 'trim,nospace,lower'
@@ -27,7 +27,7 @@ $GLOBALS['TCA']['pages']['columns'] += array(
 	'tx_realurl_pathoverride' => array(
 		'label' => 'LLL:EXT:realurl/Resources/Private/Language/locallang_db.xml:pages.tx_realurl_path_override',
 		'exclude' => 1,
-		'config' => array (
+		'config' => array(
 			'type' => 'check',
 			'items' => array(
 				array('', '')
@@ -37,7 +37,7 @@ $GLOBALS['TCA']['pages']['columns'] += array(
 	'tx_realurl_exclude' => array(
 		'label' => 'LLL:EXT:realurl/Resources/Private/Language/locallang_db.xml:pages.tx_realurl_exclude',
 		'exclude' => 1,
-		'config' => array (
+		'config' => array(
 			'type' => 'check',
 			'items' => array(
 				array('', '')
@@ -47,7 +47,7 @@ $GLOBALS['TCA']['pages']['columns'] += array(
 	'tx_realurl_nocache' => array(
 		'label' => 'LLL:EXT:realurl/Resources/Private/Language/locallang_db.xml:pages.tx_realurl_nocache',
 		'exclude' => 1,
-		'config' => array (
+		'config' => array(
 			'type' => 'check',
 			'items' => array(
 				array('', ''),
@@ -62,18 +62,17 @@ $GLOBALS['TCA']['pages']['palettes']['137'] = array(
 	'showitem' => 'tx_realurl_pathoverride'
 );
 
-
 // Put it for standard page
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '2', 'after:nav_title');
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1,5,4,199,254', 'after:title');
 
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('pages','EXT:realurl/Resources/Private/Language/locallang_csh.xml');
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addLLrefForTCAdescr('pages', 'EXT:realurl/Resources/Private/Language/locallang_csh.xml');
 
 $GLOBALS['TCA']['pages_language_overlay']['columns'] += array(
 	'tx_realurl_pathsegment' => array(
 		'label' => 'LLL:EXT:realurl/Resources/Private/Language/locallang_db.xml:pages.tx_realurl_pathsegment',
 		'exclude' => 1,
-		'config' => array (
+		'config' => array(
 			'type' => 'input',
 			'max' => 255,
 			'eval' => 'trim,nospace,lower'

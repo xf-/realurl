@@ -2,30 +2,30 @@
 namespace Tx\Realurl\Configuration;
 
 /***************************************************************
-*  Copyright notice
-*
-*  (c) 2007-2010 Dmitry Dulepov (dmitry@typo3.org)
-*  All rights reserved
-*
-*  This script is part of the Typo3 project. The Typo3 project is
-*  free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2 of the License, or
-*  (at your option) any later version.
-*
-*  The GNU General Public License can be found at
-*  http://www.gnu.org/copyleft/gpl.html.
-*  A copy is found in the textfile GPL.txt and important notices to the license
-*  from the author is found in LICENSE.txt distributed with these scripts.
-*
-*
-*  This script is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  This copyright notice MUST APPEAR in all copies of the script!
-***************************************************************/
+ *  Copyright notice
+ *
+ *  (c) 2007-2010 Dmitry Dulepov (dmitry@typo3.org)
+ *  All rights reserved
+ *
+ *  This script is part of the Typo3 project. The Typo3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
@@ -33,12 +33,11 @@ use TYPO3\CMS\Core\Utility\ArrayUtility;
 /**
  * Class for generating of automatic RealURL configuration
  *
- * @author	Dmitry Dulepov <dmitry@typo3.org>
+ * @author    Dmitry Dulepov <dmitry@typo3.org>
  * @package realurl
  * @subpackage tx_realurl
  */
 class ConfigurationGenerator {
-
 	const AUTOCONFIGURTION_FILE = 'typo3conf/realurl_autoconf.php';
 
 	/**
@@ -54,7 +53,7 @@ class ConfigurationGenerator {
 	/**
 	 * Generates configuration. Locks configuration file for exclusive access to avoid collisions. Will not be stabe on Windows.
 	 *
-	 * @return	void
+	 * @return    void
 	 */
 	public function generateConfiguration() {
 		$fileName = PATH_site . self::AUTOCONFIGURTION_FILE;
@@ -79,8 +78,8 @@ class ConfigurationGenerator {
 	/**
 	 * Performs actual generation.
 	 *
-	 * @param	resource		$fd	FIle descriptor to write to
-	 * @return	void
+	 * @param    resource $fd FIle descriptor to write to
+	 * @return    void
 	 */
 	protected function doGenerateConfiguration(&$fd) {
 
@@ -93,16 +92,15 @@ class ConfigurationGenerator {
 
 		// Find all domains
 		$domains = $this->databaseConnection->exec_SELECTgetRows('pid,domainName,redirectTo', 'sys_domain', 'hidden=0',
-				'', '', '', 'domainName');
+			'', '', '', 'domainName');
 		if (count($domains) == 0) {
 			$conf['_DEFAULT'] = $template;
 			$rows = $this->databaseConnection->exec_SELECTgetRows('uid', 'pages',
-						'deleted=0 AND hidden=0 AND is_siteroot=1', '', '', '1');
+				'deleted=0 AND hidden=0 AND is_siteroot=1', '', '', '1');
 			if (count($rows) > 0) {
 				$conf['_DEFAULT']['pagePath']['rootpage_id'] = $rows[0]['uid'];
 			}
-		}
-		else {
+		} else {
 			foreach ($domains as $domain) {
 				if ($domain['redirectTo'] != '') {
 					// Redirects to another domain, see if we can make a shortcut
@@ -135,22 +133,21 @@ class ConfigurationGenerator {
 		fwrite($fd, '<' . '?php' . LF . '$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'realurl\']=' .
 			ArrayUtility::arrayExport($conf) . ';' . chr(10)
 		);
-
 	}
 
 	/**
 	 * Creates common configuration template.
 	 *
-	 * @return	array		Template
+	 * @return    array        Template
 	 */
 	protected function getTemplate() {
 		$confTemplate = array(
 			'init' => array(
-				'enableCHashCache' => true,
+				'enableCHashCache' => TRUE,
 				'appendMissingSlash' => 'ifNotFile,redirect',
-				'adminJumpToBackend' => true,
-				'enableUrlDecodeCache' => true,
-				'enableUrlEncodeCache' => true,
+				'adminJumpToBackend' => TRUE,
+				'enableUrlDecodeCache' => TRUE,
+				'enableUrlEncodeCache' => TRUE,
 				'emptyUrlReturnValue' => GeneralUtility::getIndpEnv('TYPO3_SITE_PATH')
 			),
 			'pagePath' => array(
@@ -168,15 +165,15 @@ class ConfigurationGenerator {
 		// Add print feature if TemplaVoila is not loaded
 		if (!ExtensionManagementUtility::isLoaded('templavoila')) {
 			$confTemplate['fileName']['index']['print'] = array(
-					'keyValues' => array(
-						'type' => 98,
-					)
-				);
+				'keyValues' => array(
+					'type' => 98,
+				)
+			);
 		}
 
 		// Add respectSimulateStaticURLs if SimulateStatic is loaded
-		if(ExtensionManagementUtility::isLoaded('simulatestatic')) {
-			$confTemplate['init']['respectSimulateStaticURLs'] = true;
+		if (ExtensionManagementUtility::isLoaded('simulatestatic')) {
+			$confTemplate['init']['respectSimulateStaticURLs'] = TRUE;
 		}
 
 		$this->addLanguages($confTemplate);
@@ -201,22 +198,20 @@ class ConfigurationGenerator {
 	/**
 	 * Adds languages to configuration
 	 *
-	 * @param	array		$conf	Configuration (passed as reference)
-	 * @return	void
+	 * @param    array $conf Configuration (passed as reference)
+	 * @return    void
 	 */
 	protected function addLanguages(&$conf) {
 		if ($this->hasStaticInfoTables) {
 			$languages = $this->databaseConnection->exec_SELECTgetRows('t1.uid AS uid,t2.lg_iso_2 AS lg_iso_2', 'sys_language t1, static_languages t2', 't2.uid=t1.static_lang_isocode AND t1.hidden=0');
-		}
-		else {
+		} else {
 			$languages = $this->databaseConnection->exec_SELECTgetRows('t1.uid AS uid,t1.uid AS lg_iso_2', 'sys_language t1', 't1.hidden=0');
 		}
 		if (count($languages) > 0) {
 			$conf['preVars'] = array(
 				0 => array(
 					'GETvar' => 'L',
-					'valueMap' => array(
-					),
+					'valueMap' => array(),
 					'noMatch' => 'bypass'
 				),
 			);

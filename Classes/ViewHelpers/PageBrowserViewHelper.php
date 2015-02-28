@@ -40,8 +40,11 @@ class PageBrowserViewHelper {
 	const RESULTS_PER_PAGE_DEFAULT = 20;
 
 	protected $currentPage;
+
 	protected $totalPages;
+
 	protected $baseURL;
+
 	protected $resultsPerPage;
 
 	/**
@@ -56,6 +59,23 @@ class PageBrowserViewHelper {
 		$this->baseURL = GeneralUtility::getIndpEnv('TYPO3_REQUEST_SCRIPT') .
 			'?' . GeneralUtility::implodeArrayForUrl('', $urlParameters);
 		$this->resultsPerPage = self::RESULTS_PER_PAGE_DEFAULT;
+	}
+
+	/**
+	 * @return string
+	 */
+	static public function getInlineStyles() {
+		return '
+			TABLE.pagebrowser {
+				margin-left: auto;
+			}
+			TABLE.pagebrowser TR TD {
+				padding: 2px 4px;
+			}
+			TABLE.pagebrowser TR TD.page {
+				border: 1px solid #595d66;
+			}
+		';
 	}
 
 	/**
@@ -80,20 +100,11 @@ class PageBrowserViewHelper {
 	}
 
 	/**
-	 * @return string
+	 * @param $totalResults
 	 */
-	static public function getInlineStyles() {
-		return '
-			TABLE.pagebrowser {
-				margin-left: auto;
-			}
-			TABLE.pagebrowser TR TD {
-				padding: 2px 4px;
-			}
-			TABLE.pagebrowser TR TD.page {
-				border: 1px solid #595d66;
-			}
-		';
+	protected function calcTotalPages($totalResults) {
+		$this->totalPages = intval($totalResults / $this->resultsPerPage) +
+			(($totalResults % $this->resultsPerPage) != 0 ? 1 : 0);
 	}
 
 	/**
@@ -110,7 +121,7 @@ class PageBrowserViewHelper {
 			$page = $this->currentPage - self::PAGES_BEFORE;
 		}
 
-		for ( ; $page <= min($this->totalPages, $this->currentPage + self::PAGES_AFTER); $page++) {
+		for (; $page <= min($this->totalPages, $this->currentPage + self::PAGES_AFTER); $page++) {
 			$markup .= $this->createCell($page);
 		}
 
@@ -119,7 +130,7 @@ class PageBrowserViewHelper {
 			$page = $this->totalPages - self::PAGES_BEFORE_END;
 		}
 
-		for ( ; $page <= $this->totalPages; $page++) {
+		for (; $page <= $this->totalPages; $page++) {
 			$markup .= $this->createCell($page);
 		}
 
@@ -137,8 +148,7 @@ class PageBrowserViewHelper {
 				'<a href="' . $this->baseURL . '&amp;page=' . $pageNumber . '">',
 				'</a>'
 			);
-		}
-		else {
+		} else {
 			$link = array('', '');
 			$extraClass = ' bgColor-20';
 		}
@@ -151,13 +161,5 @@ class PageBrowserViewHelper {
 	 */
 	protected function createEllipses() {
 		return '<td>...</td>';
-	}
-
-	/**
-	 * @param $totalResults
-	 */
-	protected function calcTotalPages($totalResults) {
-		$this->totalPages = intval($totalResults/$this->resultsPerPage) +
-			(($totalResults % $this->resultsPerPage) != 0 ? 1 : 0);
 	}
 }
