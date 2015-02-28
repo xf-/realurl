@@ -24,6 +24,8 @@ namespace Tx\Realurl\ViewHelpers;
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 
 /**
  * This class is a page browser for the RealURL backend module.
@@ -47,15 +49,20 @@ class PageBrowserViewHelper {
 	 */
 	public function __construct() {
 		$urlParameters = $_GET;
-		\TYPO3\CMS\Core\Utility\ArrayUtility::mergeRecursiveWithOverrule($urlParameters, $_POST);
+		ArrayUtility::mergeRecursiveWithOverrule($urlParameters, $_POST);
 		$this->currentPage = max(1, intval($urlParameters['page']));
 		unset($urlParameters['page']);
 		unset($urlParameters['cmd']);
-		$this->baseURL = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_REQUEST_SCRIPT') .
-			'?' . \TYPO3\CMS\Core\Utility\GeneralUtility::implodeArrayForUrl('', $urlParameters);
+		$this->baseURL = GeneralUtility::getIndpEnv('TYPO3_REQUEST_SCRIPT') .
+			'?' . GeneralUtility::implodeArrayForUrl('', $urlParameters);
 		$this->resultsPerPage = self::RESULTS_PER_PAGE_DEFAULT;
 	}
 
+	/**
+	 * @param $totalResults
+	 * @param int $resultsPerPage
+	 * @return string
+	 */
 	public function getPageBrowser($totalResults, $resultsPerPage = 0) {
 		if ($resultsPerPage) {
 			$this->resultsPerPage = $resultsPerPage;
@@ -72,6 +79,9 @@ class PageBrowserViewHelper {
 		return $markup;
 	}
 
+	/**
+	 * @return string
+	 */
 	static public function getInlineStyles() {
 		return '
 			TABLE.pagebrowser {
@@ -86,6 +96,9 @@ class PageBrowserViewHelper {
 		';
 	}
 
+	/**
+	 * @return string
+	 */
 	protected function generatePageBrowser() {
 		$markup = '';
 		for ($page = 1; $page <= min($this->totalPages, $this->currentPage, self::PAGES_AFTER_START + 1); $page++) {
@@ -113,6 +126,10 @@ class PageBrowserViewHelper {
 		return $markup;
 	}
 
+	/**
+	 * @param $pageNumber
+	 * @return string
+	 */
 	protected function createCell($pageNumber) {
 		$extraClass = '';
 		if ($pageNumber != $this->currentPage) {
@@ -129,10 +146,16 @@ class PageBrowserViewHelper {
 		return '<td class="page' . $extraClass . '">' . $link[0] . $pageNumber . $link[1] . '</td>';
 	}
 
+	/**
+	 * @return string
+	 */
 	protected function createEllipses() {
 		return '<td>...</td>';
 	}
 
+	/**
+	 * @param $totalResults
+	 */
 	protected function calcTotalPages($totalResults) {
 		$this->totalPages = intval($totalResults/$this->resultsPerPage) +
 			(($totalResults % $this->resultsPerPage) != 0 ? 1 : 0);

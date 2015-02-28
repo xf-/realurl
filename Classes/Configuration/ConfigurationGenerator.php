@@ -26,6 +26,9 @@ namespace Tx\Realurl\Configuration;
 *
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\ArrayUtility;
 
 /**
  * Class for generating of automatic RealURL configuration
@@ -56,7 +59,7 @@ class ConfigurationGenerator {
 	public function generateConfiguration() {
 		$fileName = PATH_site . self::AUTOCONFIGURTION_FILE;
 
-		$lockObject = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Locking\\Locker', $fileName, $GLOBALS['TYPO3_CONF_VARS']['SYS']['lockingMode']);
+		$lockObject = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Locking\\Locker', $fileName, $GLOBALS['TYPO3_CONF_VARS']['SYS']['lockingMode']);
 		/** @var \TYPO3\CMS\Core\Locking\Locker $lockObject */
 		$lockObject->setEnableLogging(FALSE);
 		$lockObject->acquireExclusiveLock();
@@ -68,7 +71,7 @@ class ConfigurationGenerator {
 				$this->doGenerateConfiguration($fd);
 			}
 			fclose($fd);
-			\TYPO3\CMS\Core\Utility\GeneralUtility::fixPermissions($fileName);
+			GeneralUtility::fixPermissions($fileName);
 		}
 		$lockObject->release();
 	}
@@ -83,7 +86,7 @@ class ConfigurationGenerator {
 
 		$this->databaseConnection = $GLOBALS['TYPO3_DB'];
 
-		$this->hasStaticInfoTables = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables');
+		$this->hasStaticInfoTables = ExtensionManagementUtility::isLoaded('static_info_tables');
 
 		$conf = array();
 		$template = $this->getTemplate();
@@ -125,12 +128,12 @@ class ConfigurationGenerator {
 				$parameters = array(
 					'config' => &$conf,
 				);
-				\TYPO3\CMS\Core\Utility\GeneralUtility::callUserFunction($userFunc, $parameters, $this);
+				GeneralUtility::callUserFunction($userFunc, $parameters, $this);
 			}
 		}
 
 		fwrite($fd, '<' . '?php' . LF . '$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'realurl\']=' .
-			\TYPO3\CMS\Core\Utility\ArrayUtility::arrayExport($conf) . ';' . chr(10)
+			ArrayUtility::arrayExport($conf) . ';' . chr(10)
 		);
 
 	}
@@ -148,7 +151,7 @@ class ConfigurationGenerator {
 				'adminJumpToBackend' => true,
 				'enableUrlDecodeCache' => true,
 				'enableUrlEncodeCache' => true,
-				'emptyUrlReturnValue' => \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_PATH')
+				'emptyUrlReturnValue' => GeneralUtility::getIndpEnv('TYPO3_SITE_PATH')
 			),
 			'pagePath' => array(
 				'type' => 'user',
@@ -163,7 +166,7 @@ class ConfigurationGenerator {
 		);
 
 		// Add print feature if TemplaVoila is not loaded
-		if (!\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('templavoila')) {
+		if (!ExtensionManagementUtility::isLoaded('templavoila')) {
 			$confTemplate['fileName']['index']['print'] = array(
 					'keyValues' => array(
 						'type' => 98,
@@ -172,7 +175,7 @@ class ConfigurationGenerator {
 		}
 
 		// Add respectSimulateStaticURLs if SimulateStatic is loaded
-		if(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('simulatestatic')) {
+		if(ExtensionManagementUtility::isLoaded('simulatestatic')) {
 			$confTemplate['init']['respectSimulateStaticURLs'] = true;
 		}
 
@@ -185,7 +188,7 @@ class ConfigurationGenerator {
 					'config' => $confTemplate,
 					'extKey' => $extKey
 				);
-				$var = \TYPO3\CMS\Core\Utility\GeneralUtility::callUserFunction($userFunc, $params, $this);
+				$var = GeneralUtility::callUserFunction($userFunc, $params, $this);
 				if ($var) {
 					$confTemplate = $var;
 				}

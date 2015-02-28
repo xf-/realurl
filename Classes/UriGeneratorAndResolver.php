@@ -28,7 +28,10 @@ namespace Tx\Realurl;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use Tx\Realurl\Hooks\UrlRewritingHook;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class for translating page ids to/from path strings (Speaking URLs)
@@ -49,7 +52,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 	/**
 	 * Reference to parent object
 	 *
-	 * @var \Tx\Realurl\Hooks\UrlRewritingHook
+	 * @var UrlRewritingHook
 	 */
 	protected $pObj;
 
@@ -75,7 +78,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 	 * @param \Tx\Realurl\Hooks\UrlRewritingHook $parent Copy of parent object. Not used.
 	 * @return mixed Depends on branching.
 	 */
-	public function main(array $params, \Tx\Realurl\Hooks\UrlRewritingHook $parent) {
+	public function main(array $params, UrlRewritingHook $parent) {
 		// Setting internal variables
 		$this->pObj = $parent;
 		$this->conf = $params['conf'];
@@ -171,7 +174,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 	 * @return boolean
 	 */
 	protected function isExcludedPage($pageId) {
-		return $this->conf['excludePageIds'] && \TYPO3\CMS\Core\Utility\GeneralUtility::inList($this->conf['excludePageIds'], $pageId);
+		return $this->conf['excludePageIds'] && GeneralUtility::inList($this->conf['excludePageIds'], $pageId);
 	}
 
 	/**
@@ -354,7 +357,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 			else {
 				$message = sprintf('Path override is set for page=%d (language=%d) but no segment defined!',
 					$id, $lang);
-				\TYPO3\CMS\Core\Utility\GeneralUtility::sysLog($message, 'realurl', 3);
+				GeneralUtility::sysLog($message, 'realurl', 3);
 				$this->pObj->devLog($message, false, 2);
 			}
 		}
@@ -608,7 +611,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 				// Building up the path from page title etc.
 				if (!$page['tx_realurl_exclude'] || count($rl) == 0) {
 					// List of "pages" fields to traverse for a "directory title" in the speaking URL (only from RootLine!!)
-					$segTitleFieldArray = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $this->conf['segTitleFieldList'] ? $this->conf['segTitleFieldList'] : TX_REALURL_SEGTITLEFIELDLIST_DEFAULT, 1);
+					$segTitleFieldArray = GeneralUtility::trimExplode(',', $this->conf['segTitleFieldList'] ? $this->conf['segTitleFieldList'] : TX_REALURL_SEGTITLEFIELDLIST_DEFAULT, 1);
 					$theTitle = '';
 					foreach ($segTitleFieldArray as $fieldName) {
 						if ($page[$fieldName]) {
@@ -732,7 +735,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 					$redirectUrl = implode('/', $newUrlSegments);
 
 					header('HTTP/1.1 301 TYPO3 RealURL Redirect A' . __LINE__);
-					header('Location: ' . \TYPO3\CMS\Core\Utility\GeneralUtility::locationHeaderUrl($redirectUrl));
+					header('Location: ' . GeneralUtility::locationHeaderUrl($redirectUrl));
 					exit();
 				}
 				$this->pObj->disableDecodeCache = true;	// Do not cache this!
@@ -1014,11 +1017,11 @@ class UriGeneratorAndResolver implements SingletonInterface {
 
 		// List of "pages" fields to traverse for a "directory title" in the speaking URL (only from RootLine!!)
 		$segTitleFieldList = $this->conf['segTitleFieldList'] ? $this->conf['segTitleFieldList'] : TX_REALURL_SEGTITLEFIELDLIST_DEFAULT;
-		$selList = \TYPO3\CMS\Core\Utility\GeneralUtility::uniqueList('uid,pid,doktype,mount_pid,mount_pid_ol,tx_realurl_exclude,' . $segTitleFieldList);
-		$segTitleFieldArray = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $segTitleFieldList, 1);
+		$selList = GeneralUtility::uniqueList('uid,pid,doktype,mount_pid,mount_pid_ol,tx_realurl_exclude,' . $segTitleFieldList);
+		$segTitleFieldArray = GeneralUtility::trimExplode(',', $segTitleFieldList, 1);
 
 		// page select object - used to analyse mount points.
-		$sys_page = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Page\\PageRepository');
+		$sys_page = GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Page\\PageRepository');
 		/** @var \TYPO3\CMS\Frontend\Page\PageRepository $sys_page */
 
 		// Build an array with encoded values from the segTitleFieldArray of the subpages
@@ -1109,7 +1112,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 		$allTitles = array();
 		foreach ($segTitleFieldArray as $fieldName) {
 			if (is_array($titles[$fieldName])) {
-				$allTitles = \TYPO3\CMS\Core\Utility\GeneralUtility::array_merge($allTitles, $titles[$fieldName]);
+				$allTitles = $allTitles + $titles[$fieldName];
 			}
 		}
 
@@ -1176,7 +1179,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 		if ($this->conf['encodeTitle_userProc']) {
 			$encodingConfiguration = array('strtolower' => true, 'spaceCharacter' => $this->conf['spaceCharacter']);
 			$params = array('pObj' => &$this, 'title' => $title, 'processedTitle' => $processedTitle, 'encodingConfiguration' => $encodingConfiguration);
-			$processedTitle = \TYPO3\CMS\Core\Utility\GeneralUtility::callUserFunction($this->conf['encodeTitle_userProc'], $params, $this);
+			$processedTitle = GeneralUtility::callUserFunction($this->conf['encodeTitle_userProc'], $params, $this);
 		}
 
 		// Return encoded URL
@@ -1190,7 +1193,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 	 * @return int Expiration time stamp
 	 */
 	protected function makeExpirationTime($offsetFromNow = 0) {
-		if (!\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('adodb') && (TYPO3_db_host == '127.0.0.1' || TYPO3_db_host == 'localhost')) {
+		if (!ExtensionManagementUtility::isLoaded('adodb') && (TYPO3_db_host == '127.0.0.1' || TYPO3_db_host == 'localhost')) {
 			// Same host, same time, optimize
 			return $offsetFromNow ? '(UNIX_TIMESTAMP()+(' . $offsetFromNow . '))' : 'UNIX_TIMESTAMP()';
 		}
@@ -1220,7 +1223,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 			}
 		}
 		// Might be excepted (like you should for CJK cases which does not translate to ASCII equivalents)
-		if (isset($this->conf['languageExceptionUids']) && \TYPO3\CMS\Core\Utility\GeneralUtility::inList($this->conf['languageExceptionUids'], $lang)) {
+		if (isset($this->conf['languageExceptionUids']) && GeneralUtility::inList($this->conf['languageExceptionUids'], $lang)) {
 			$lang = 0;
 		}
 
@@ -1289,7 +1292,7 @@ class UriGeneratorAndResolver implements SingletonInterface {
 	 */
 	protected function createSysPageIfNecessary() {
 		if (!is_object($this->sysPage)) {
-			$this->sysPage = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Page\\PageRepository');
+			$this->sysPage = GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Page\\PageRepository');
 			$this->sysPage->init($GLOBALS['TSFE']->showHiddenPage || $this->pObj->isBEUserLoggedIn());
 		}
 	}

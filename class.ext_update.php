@@ -34,10 +34,9 @@ class ext_update {
 	/**
 	 * Stub function for the extension manager
 	 *
-	 * @param	string	$what	What should be updated
 	 * @return	boolean	true to allow access
 	 */
-	public function access($what = 'all') {
+	public function access() {
 		$fields = $GLOBALS['TYPO3_DB']->admin_get_fields('pages');
 		return isset($fields['tx_aoerealurlpath_overridepath']) && isset($fields['tx_aoerealurlpath_excludefrommiddle']);
 	}

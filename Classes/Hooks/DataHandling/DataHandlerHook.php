@@ -28,7 +28,11 @@ namespace Tx\Realurl\Hooks\DataHandling;
 ***************************************************************/
 
 use Tx\Realurl\Configuration\ConfigurationGenerator;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\MathUtility;
 
 /**
  * TCEmain hook to update various caches when data is modified in TYPO3 Backend
@@ -170,7 +174,7 @@ class DataHandlerHook implements SingletonInterface {
 	 * @return void
 	 */
 	protected function fetchRealURLConfiguration($pageId) {
-		$rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($pageId);
+		$rootLine = BackendUtility::BEgetRootLine($pageId);
 		$rootPageId = $rootLine[1]['uid'];
 		$this->config = array();
 		if (isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl'])) {
@@ -185,7 +189,7 @@ class DataHandlerHook implements SingletonInterface {
 			}
 		}
 		else {
-			\TYPO3\CMS\Core\Utility\GeneralUtility::sysLog('RealURL is not configured! Please, configure it or uninstall.', 'RealURL', 3);
+			GeneralUtility::sysLog('RealURL is not configured! Please, configure it or uninstall.', 'RealURL', 3);
 		}
 	}
 
@@ -199,9 +203,8 @@ class DataHandlerHook implements SingletonInterface {
 		$children  = array();
 
 		/** @var $tree \TYPO3\CMS\Backend\Tree\View\PageTreeView */
-		$tree = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Tree\\View\\PageTreeView');
+		$tree = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Tree\\View\\PageTreeView');
 		$tree->init('AND ' . $GLOBALS['BE_USER']->getPagePermsClause(1));
-		$this->makeHTML = FALSE;
 		$tree->getTree($pageId, 99, '');
 
 		foreach ($tree->tree as $data) {
@@ -258,7 +261,7 @@ class DataHandlerHook implements SingletonInterface {
 			}
 		}
 		$fieldList .= ',hidden';
-		return array_unique(\TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', $fieldList, true));
+		return array_unique(GeneralUtility::trimExplode(',', $fieldList, true));
 	}
 
 	/**
@@ -306,11 +309,11 @@ class DataHandlerHook implements SingletonInterface {
 	 * @param string $tableName
 	 * @param int $recordId
 	 * @param array $databaseData
-	 * @param \TYPO3\CMS\Core\DataHandling\DataHandler $dataHandler
+	 * @param DataHandler $dataHandler
 	 * @return void
 	 * @todo Expire unique alias cache: how to get the proper timeout value easily here?
 	 */
-	public function processDatamap_afterDatabaseOperations($status, $tableName, $recordId, array $databaseData, \TYPO3\CMS\Core\DataHandling\DataHandler $dataHandler) {
+	public function processDatamap_afterDatabaseOperations($status, $tableName, $recordId, array $databaseData, DataHandler $dataHandler) {
 		$this->processContentUpdates($status, $tableName, $recordId, $databaseData, $dataHandler);
 		$this->clearAutoConfiguration($tableName);
 	}
@@ -346,9 +349,9 @@ class DataHandlerHook implements SingletonInterface {
 	 * @return void
 	 * @todo Handle changes to tx_realurl_exclude recursively
 	 */
-	protected function processContentUpdates($status, $tableName, $recordId, array $databaseData, \TYPO3\CMS\Core\DataHandling\DataHandler $dataHandler) {
+	protected function processContentUpdates($status, $tableName, $recordId, array $databaseData, DataHandler $dataHandler) {
 		if ($tableName !== 'pages' || $status == 'update') {
-			if (!\TYPO3\CMS\Core\Utility\MathUtility::canBeInterpretedAsInteger($recordId)) {
+			if (!MathUtility::canBeInterpretedAsInteger($recordId)) {
 				$recordId = intval($dataHandler->substNEWwithIDs[$recordId]);
 			}
 			list($pageId, $languageId) = $this->getPageData($tableName, $recordId);
